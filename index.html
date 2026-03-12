@@ -11,6 +11,8 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html { font-size: 32px; }
+
     body {
       font-family: 'Press Start 2P', monospace;
       background: #0d1117;
@@ -37,7 +39,7 @@
     #slots-screen {
       position: fixed;
       inset: 0;
-      background: #1a2820 url('bayou_background.jpg') center / cover no-repeat;
+      background: #1a2820 url('swamp_background.png') center / cover no-repeat;
       z-index: 50;
       display: flex;
       flex-direction: column;
@@ -370,7 +372,7 @@
     <div class="top-bar">
       <span class="top-bar-title">Swamp Slots</span>
       <div class="top-bar-spacer"></div>
-      <span class="top-bar-chips" id="slots-chips-display">$500</span>
+      <span class="top-bar-chips" id="slots-chips-display">$100</span>
       <button type="button" class="btn-rebuy" id="rebuy-btn" disabled><span class="ad-icon">&#x25B6;</span>Rebuy $100</button>
       <button type="button" class="btn-sound-toggle" id="sound-toggle" title="Toggle sound">&#x1F50A;</button>
     </div>
@@ -426,7 +428,7 @@
     const SPIN_DURATION_MS = 10000;
     const REEL_STAGGER_MS = 200;
     const CYCLE_OFFSET = 2;
-    const STARTING_CHIPS = 500;
+    const STARTING_CHIPS = 100;
     const REBUY_AMOUNT = 100;
 
     // ── AdSense Ad Placement API (rewarded ads) ──
