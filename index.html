@@ -6,6 +6,8 @@
   <title>Swamp Slots</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7503474617543610"
+     crossorigin="anonymous"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -77,10 +79,18 @@
       cursor: pointer;
       border-radius: 0;
     }
-    .btn-rebuy:hover {
+    .btn-rebuy:hover:not(:disabled) {
       color: var(--swamp-highlight);
       border-color: var(--swamp-highlight);
       background: rgba(46, 75, 61, 0.95);
+    }
+    .btn-rebuy:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .btn-rebuy .ad-icon {
+      font-style: normal;
+      margin-right: 0.2rem;
     }
 
     .btn-sound-toggle {
@@ -361,7 +371,7 @@
       <span class="top-bar-title">Swamp Slots</span>
       <div class="top-bar-spacer"></div>
       <span class="top-bar-chips" id="slots-chips-display">$500</span>
-      <button type="button" class="btn-rebuy hidden" id="rebuy-btn">Rebuy $500</button>
+      <button type="button" class="btn-rebuy" id="rebuy-btn" disabled><span class="ad-icon">&#x25B6;</span>Rebuy $100</button>
       <button type="button" class="btn-sound-toggle" id="sound-toggle" title="Toggle sound">&#x1F50A;</button>
     </div>
 
@@ -417,6 +427,47 @@
     const REEL_STAGGER_MS = 200;
     const CYCLE_OFFSET = 2;
     const STARTING_CHIPS = 500;
+    const REBUY_AMOUNT = 100;
+
+    // ── AdSense Ad Placement API (rewarded ads) ──
+    window.adsbygoogle = window.adsbygoogle || [];
+    let adBreak = function (o) { adsbygoogle.push(o); };
+    let adConfig = function (o) { adsbygoogle.push(o); };
+    let adsReady = false;
+    let adRequesting = false;
+
+    function initAds() {
+      adConfig({
+        preloadAdBreaks: 'on',
+        onReady: function () {
+          adsReady = true;
+          updateUI();
+        },
+      });
+    }
+
+    function showRewardedAd() {
+      if (adRequesting || spinning) return;
+      adRequesting = true;
+      updateUI();
+
+      adBreak({
+        type: 'reward',
+        name: 'rebuy-chips',
+        beforeReward: function (showAdFn) {
+          showAdFn();
+        },
+        adViewed: function () {
+          chips += REBUY_AMOUNT;
+          saveChips();
+        },
+        adDismissed: function () {},
+        adBreakDone: function () {
+          adRequesting = false;
+          updateUI();
+        },
+      });
+    }
 
     const SYMBOLS = [
       { id: 'crayfish', img: 'slot-assets/blue-crayfish.png' },
@@ -571,11 +622,7 @@
       spinBtn.textContent = `Spin $${currentBet}`;
 
       const rebuyBtn = el('rebuy-btn');
-      if (chips <= 0 && !spinning) {
-        rebuyBtn.classList.remove('hidden');
-      } else {
-        rebuyBtn.classList.add('hidden');
-      }
+      rebuyBtn.disabled = !adsReady || adRequesting || spinning;
 
       document.querySelectorAll('.slots-denom-btn').forEach((btn) => {
         const val = parseInt(btn.dataset.bet, 10);
@@ -717,9 +764,8 @@
       });
 
       el('rebuy-btn').addEventListener('click', () => {
-        chips = STARTING_CHIPS;
-        saveChips();
-        updateUI();
+        if (!adsReady || adRequesting) return;
+        showRewardedAd();
       });
 
       el('sound-toggle').addEventListener('click', () => {
@@ -736,6 +782,8 @@
         startAmbience();
         document.removeEventListener('click', firstClick);
       }, { once: true });
+
+      initAds();
     }
 
     document.addEventListener('DOMContentLoaded', init);
