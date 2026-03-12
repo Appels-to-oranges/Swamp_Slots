@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swamp Slots</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Press Start 2P', monospace;
+      background: #0d1117;
+      color: #c9d1d9;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ── Swamp palette ── */
+    :root {
+      --swamp-muted: #8FB56F;
+      --swamp-text: #719A4B;
+      --swamp-highlight: #B4E8C2;
+      --swamp-bright: #8EC1CA;
+      --swamp-border: #2E4B3D;
+      --swamp-border-light: #3D6147;
+      --swamp-win: #5D803F;
+    }
+
+    /* ── Full-screen slots ── */
+    #slots-screen {
+      position: fixed;
+      inset: 0;
+      background: #1a2820 url('bayou_background.jpg') center / cover no-repeat;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.4rem 0.75rem;
+      background: rgba(30, 45, 40, 0.9);
+      border-bottom: 0.15rem solid var(--swamp-border);
+      flex-shrink: 0;
+    }
+
+    .top-bar-title {
+      font-size: 0.7rem;
+      color: var(--swamp-highlight);
+      letter-spacing: 0.1rem;
+      text-transform: uppercase;
+    }
+
+    .top-bar-spacer { flex: 1; }
+
+    .top-bar-chips {
+      font-size: 0.65rem;
+      color: var(--swamp-highlight);
+    }
+
+    .btn-rebuy {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.5rem;
+      padding: 0.35rem 0.6rem;
+      background: rgba(46, 75, 61, 0.7);
+      border: 0.1rem solid var(--swamp-border-light);
+      color: var(--swamp-muted);
+      cursor: pointer;
+      border-radius: 0;
+    }
+    .btn-rebuy:hover {
+      color: var(--swamp-highlight);
+      border-color: var(--swamp-highlight);
+      background: rgba(46, 75, 61, 0.95);
+    }
+
+    .btn-sound-toggle {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      padding: 0.35rem 0.5rem;
+      background: rgba(0,0,0,0.4);
+      border: 0.1rem solid var(--swamp-border);
+      color: var(--swamp-muted);
+      cursor: pointer;
+      border-radius: 0;
+      line-height: 1;
+    }
+    .btn-sound-toggle:hover {
+      color: var(--swamp-highlight);
+      border-color: var(--swamp-highlight);
+    }
+
+    /* ── Main area ── */
+    .slots-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      min-height: 0;
+    }
+
+    /* ── Machine ── */
+    .slots-machine {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 2.5rem;
+      width: 28rem;
+      max-width: 95vw;
+      background: rgba(45, 61, 55, 0.95);
+      border: 0.25rem solid var(--swamp-border-light);
+      box-shadow: inset 0 0 1rem rgba(0,0,0,0.5), 0 0.5rem 1.5rem rgba(0,0,0,0.5);
+      image-rendering: pixelated;
+    }
+
+    .slots-machine-label {
+      font-size: 1rem;
+      color: var(--swamp-highlight);
+      text-transform: uppercase;
+      letter-spacing: 0.15rem;
+    }
+
+    /* ── Reels ── */
+    .slots-reels {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: #1a2420;
+      border: 0.2rem solid var(--swamp-border);
+    }
+
+    .slots-reel {
+      width: 6rem;
+      height: 6rem;
+      background: #0d0a08;
+      overflow: hidden;
+      position: relative;
+      image-rendering: pixelated;
+    }
+
+    .slots-reel-strip {
+      display: flex;
+      flex-direction: column;
+      will-change: transform;
+      image-rendering: pixelated;
+    }
+
+    .slots-symbol {
+      width: 6rem;
+      height: 6rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slots-symbol-img {
+      width: 4.4rem;
+      height: 4.4rem;
+      object-fit: contain;
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+
+    .slots-payline {
+      width: 100%;
+      height: 0.3rem;
+      background: var(--swamp-bright);
+      border-radius: 0.1rem;
+    }
+
+    /* ── Result text ── */
+    .slots-result {
+      font-size: 1.2rem;
+      color: var(--swamp-muted);
+      min-height: 2.4rem;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slots-result.slots-result-win {
+      color: var(--swamp-highlight);
+    }
+
+    /* ── Controls ── */
+    .slots-machine-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    .slots-denom-buttons {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .slots-denom-btn {
+      padding: 0.45rem 0.8rem;
+      font-size: 0.7rem;
+      font-family: 'Press Start 2P', monospace;
+      background: rgba(0,0,0,0.5);
+      border: 0.1rem solid var(--swamp-border);
+      color: var(--swamp-muted);
+      cursor: pointer;
+      border-radius: 0;
+      transition: none;
+    }
+
+    .slots-denom-btn:hover {
+      color: var(--swamp-highlight);
+      background: rgba(0,0,0,0.7);
+    }
+
+    .slots-denom-btn.active {
+      color: var(--swamp-highlight);
+      border-color: var(--swamp-bright);
+      background: rgba(46, 75, 61, 0.9);
+    }
+
+    .slots-spin-row {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    .slots-spin-btn {
+      font-family: 'Press Start 2P', monospace;
+      padding: 0.9rem 2.2rem;
+      font-size: 1rem;
+      color: var(--swamp-muted);
+      border: 0.15rem solid var(--swamp-border);
+      background: rgba(0,0,0,0.5);
+      cursor: pointer;
+      border-radius: 0;
+      transition: none;
+    }
+
+    .slots-spin-btn:hover:not(:disabled) {
+      background: rgba(46, 75, 61, 0.5);
+      border-color: var(--swamp-highlight);
+      color: var(--swamp-highlight);
+    }
+
+    .slots-spin-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .slots-info-btn {
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--swamp-muted);
+      background: rgba(0,0,0,0.5);
+      border: 0.1rem solid var(--swamp-border);
+      border-radius: 0.2rem;
+      cursor: pointer;
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .slots-info-btn:hover {
+      color: var(--swamp-highlight);
+      background: rgba(0,0,0,0.7);
+    }
+
+    /* ── Payout overlay ── */
+    .slots-payout-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .slots-payout-overlay.hidden { display: none; }
+
+    .slots-payout-panel {
+      background: rgba(45, 61, 55, 0.98);
+      border: 0.25rem solid var(--swamp-border-light);
+      padding: 1.5rem;
+      max-width: 20rem;
+    }
+
+    .slots-payout-panel h3 {
+      margin: 0 0 0.75rem;
+      font-size: 0.6rem;
+      color: var(--swamp-highlight);
+    }
+
+    .slots-payout-list {
+      list-style: none;
+      margin: 0 0 1rem;
+      padding: 0;
+      font-size: 0.5rem;
+      color: var(--swamp-muted);
+    }
+
+    .slots-payout-list li {
+      padding: 0.25rem 0;
+      border-bottom: 0.05rem solid rgba(46, 75, 61, 0.5);
+    }
+
+    .slots-payout-list li:last-child { border-bottom: none; }
+
+    .slots-payout-close {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 0.5rem;
+      font-family: 'Press Start 2P', monospace;
+      background: rgba(0,0,0,0.5);
+      border: 0.1rem solid var(--swamp-border);
+      color: var(--swamp-muted);
+      cursor: pointer;
+      border-radius: 0;
+    }
+
+    .slots-payout-close:hover {
+      color: var(--swamp-highlight);
+      border-color: var(--swamp-highlight);
+    }
+
+    /* ── Jackpot flash ── */
+    @keyframes jackpot-flash {
+      0%, 100% { color: var(--swamp-highlight); text-shadow: 0 0 0.5rem rgba(180,232,194,0.6); }
+      50% { color: #FFD700; text-shadow: 0 0 1rem rgba(255,215,0,0.8); }
+    }
+
+    .slots-result.jackpot {
+      animation: jackpot-flash 0.4s ease-in-out 6;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="slots-screen">
+    <div class="top-bar">
+      <span class="top-bar-title">Swamp Slots</span>
+      <div class="top-bar-spacer"></div>
+      <span class="top-bar-chips" id="slots-chips-display">$500</span>
+      <button type="button" class="btn-rebuy hidden" id="rebuy-btn">Rebuy $500</button>
+      <button type="button" class="btn-sound-toggle" id="sound-toggle" title="Toggle sound">&#x1F50A;</button>
+    </div>
+
+    <div class="slots-container">
+      <div class="slots-machine">
+        <div class="slots-machine-label">Swamp Slots</div>
+
+        <div class="slots-reels" id="slots-reels">
+          <div class="slots-reel" id="reel-0"></div>
+          <div class="slots-reel" id="reel-1"></div>
+          <div class="slots-reel" id="reel-2"></div>
+        </div>
+
+        <div class="slots-payline"></div>
+
+        <div class="slots-result" id="slots-result"></div>
+
+        <div class="slots-machine-controls">
+          <div class="slots-denom-buttons" id="denom-buttons"></div>
+          <div class="slots-spin-row">
+            <button type="button" class="slots-spin-btn" id="spin-btn">Spin $5</button>
+            <button type="button" class="slots-info-btn" id="info-btn" title="Payout table">&#8505;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="slots-payout-overlay" class="slots-payout-overlay hidden">
+    <div class="slots-payout-panel">
+      <h3>Payout Table (multipliers)</h3>
+      <ul class="slots-payout-list">
+        <li><strong>3 Catfish</strong> &mdash; x50 Jackpot!</li>
+        <li><strong>3 Crayfish</strong> &mdash; x10</li>
+        <li><strong>3 Alligator</strong> &mdash; x8</li>
+        <li><strong>3 Worm</strong> &mdash; x4</li>
+        <li><strong>3 Hook</strong> &mdash; x3</li>
+        <li><strong>2 Worms</strong> &mdash; x1 (bet back)</li>
+      </ul>
+      <button type="button" class="slots-payout-close" id="payout-close">Close</button>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    const DENOMINATIONS = [5, 10, 20, 100];
+    const DEFAULT_BET = 5;
+    const SYMBOL_HEIGHT = 6;
+    const SPIN_CYCLES = 8;
+    const SPIN_DURATION_MS = 10000;
+    const REEL_STAGGER_MS = 200;
+    const CYCLE_OFFSET = 2;
+    const STARTING_CHIPS = 500;
+
+    const SYMBOLS = [
+      { id: 'crayfish', img: 'slot-assets/blue-crayfish.png' },
+      { id: 'alligator', img: 'slot-assets/Copy of american-alligator.png' },
+      { id: 'catfish', img: 'slot-assets/Copy of catfish-image.png' },
+      { id: 'worm', img: 'slot-assets/Copy of worm-bait.png' },
+      { id: 'hook', img: 'slot-assets/fishing-hook-1.png' },
+    ];
+
+    const SYMBOL_MAP = Object.fromEntries(SYMBOLS.map((s) => [s.id, s]));
+
+    const MULTIPLIERS = { catfish: 50, crayfish: 10, alligator: 8, worm: 4, hook: 3 };
+
+    let chips = parseInt(localStorage.getItem('swampslots_chips'), 10);
+    if (!Number.isFinite(chips) || chips <= 0) chips = STARTING_CHIPS;
+
+    let currentBet = DEFAULT_BET;
+    let spinning = false;
+    let soundEnabled = true;
+
+    const sounds = {};
+
+    function loadSounds() {
+      const files = {
+        ambience: 'sounds/SWAMP_AMBIENCE.wav',
+        spin: 'sounds/SLOT_SPIN_SOUND.wav',
+        jackpot: 'sounds/swamp_jackpot.wav',
+        lose: 'sounds/slots_lose.wav',
+        winner: 'sounds/winner.wav',
+      };
+      for (const [key, src] of Object.entries(files)) {
+        const audio = new Audio(src);
+        if (key === 'ambience') {
+          audio.loop = true;
+          audio.volume = 0.25;
+        } else {
+          audio.volume = 0.6;
+        }
+        sounds[key] = audio;
+      }
+    }
+
+    function playSound(name) {
+      if (!soundEnabled || !sounds[name]) return;
+      const s = sounds[name];
+      if (name !== 'ambience') {
+        s.currentTime = 0;
+      }
+      s.play().catch(() => {});
+    }
+
+    function stopSound(name) {
+      if (!sounds[name]) return;
+      sounds[name].pause();
+      if (name !== 'ambience') sounds[name].currentTime = 0;
+    }
+
+    function startAmbience() {
+      if (soundEnabled && sounds.ambience) {
+        sounds.ambience.play().catch(() => {});
+      }
+    }
+
+    function el(id) { return document.getElementById(id); }
+
+    function saveChips() {
+      localStorage.setItem('swampslots_chips', String(chips));
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function createSymbolEl(sym) {
+      const span = document.createElement('span');
+      span.className = 'slots-symbol';
+      const img = document.createElement('img');
+      img.src = sym.img;
+      img.alt = sym.id;
+      img.className = 'slots-symbol-img';
+      span.appendChild(img);
+      return span;
+    }
+
+    function buildReelStrip(reelEl, symbolOrder) {
+      reelEl.innerHTML = '';
+      const order = symbolOrder || shuffle(SYMBOLS.map((s) => s.id));
+      reelEl.dataset.symbolOrder = JSON.stringify(order);
+      const strip = document.createElement('div');
+      strip.className = 'slots-reel-strip';
+      for (let cycle = 0; cycle < SPIN_CYCLES + 2; cycle++) {
+        for (let i = 0; i < order.length; i++) {
+          strip.appendChild(createSymbolEl(SYMBOL_MAP[order[i]] || SYMBOLS[i]));
+        }
+      }
+      reelEl.appendChild(strip);
+      return strip;
+    }
+
+    function getSymbolIndexInReel(reelEl, symbolId) {
+      try {
+        const order = JSON.parse(reelEl.dataset.symbolOrder || '[]');
+        return order.indexOf(symbolId);
+      } catch (_) {
+        return SYMBOLS.findIndex((s) => s.id === symbolId);
+      }
+    }
+
+    function animateReelToSymbol(reelEl, symbolId, delayMs) {
+      const strip = reelEl.querySelector('.slots-reel-strip');
+      if (!strip) return;
+      const idx = getSymbolIndexInReel(reelEl, symbolId);
+      const len = SYMBOLS.length;
+      if (idx < 0) return;
+
+      const endOffset = SYMBOL_HEIGHT * (idx + CYCLE_OFFSET * len);
+      const startOffset = SYMBOL_HEIGHT * (idx + (CYCLE_OFFSET + 6) * len);
+
+      strip.style.transition = 'none';
+      strip.style.transform = `translateY(-${startOffset}rem)`;
+      strip.offsetHeight;
+
+      setTimeout(() => {
+        strip.style.transition = `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.1, 0.8, 0.2, 1)`;
+        strip.style.transform = `translateY(-${endOffset}rem)`;
+      }, delayMs);
+    }
+
+    function renderReel(reelEl, symbolId) {
+      let strip = reelEl.querySelector('.slots-reel-strip');
+      if (!strip) strip = buildReelStrip(reelEl);
+      strip.style.transition = 'none';
+      if (symbolId) {
+        const idx = getSymbolIndexInReel(reelEl, symbolId);
+        const len = SYMBOLS.length;
+        if (idx >= 0) {
+          const offset = SYMBOL_HEIGHT * (idx + CYCLE_OFFSET * len);
+          strip.style.transform = `translateY(-${offset}rem)`;
+        }
+      }
+    }
+
+    function updateUI() {
+      el('slots-chips-display').textContent = '$' + chips;
+      const spinBtn = el('spin-btn');
+      spinBtn.disabled = spinning || chips < currentBet;
+      spinBtn.textContent = `Spin $${currentBet}`;
+
+      const rebuyBtn = el('rebuy-btn');
+      if (chips <= 0 && !spinning) {
+        rebuyBtn.classList.remove('hidden');
+      } else {
+        rebuyBtn.classList.add('hidden');
+      }
+
+      document.querySelectorAll('.slots-denom-btn').forEach((btn) => {
+        const val = parseInt(btn.dataset.bet, 10);
+        btn.classList.toggle('active', val === currentBet);
+      });
+    }
+
+    function resolveReels() {
+      const symbolIds = SYMBOLS.map((s) => s.id);
+      return [
+        symbolIds[Math.floor(Math.random() * symbolIds.length)],
+        symbolIds[Math.floor(Math.random() * symbolIds.length)],
+        symbolIds[Math.floor(Math.random() * symbolIds.length)],
+      ];
+    }
+
+    function calculatePayout(reels, bet) {
+      if (reels[0] === reels[1] && reels[1] === reels[2]) {
+        return bet * (MULTIPLIERS[reels[0]] || 0);
+      }
+      const wormCount = reels.filter((r) => r === 'worm').length;
+      if (wormCount >= 2) return bet;
+      return 0;
+    }
+
+    function spin() {
+      if (spinning || chips < currentBet) return;
+      spinning = true;
+
+      chips -= currentBet;
+      saveChips();
+      updateUI();
+
+      playSound('spin');
+
+      const reelEls = [el('reel-0'), el('reel-1'), el('reel-2')];
+      reelEls.forEach((reelEl) => {
+        buildReelStrip(reelEl);
+        const strip = reelEl.querySelector('.slots-reel-strip');
+        if (strip) {
+          strip.style.transition = 'transform 80ms linear';
+          strip.style.transform = `translateY(-${SYMBOL_HEIGHT * SYMBOLS.length * 3}rem)`;
+        }
+      });
+
+      const resultEl = el('slots-result');
+      resultEl.textContent = 'Spinning...';
+      resultEl.classList.remove('slots-result-win', 'jackpot');
+
+      const finalReels = resolveReels();
+      const payout = calculatePayout(finalReels, currentBet);
+      const isJackpot = finalReels[0] === finalReels[1] && finalReels[1] === finalReels[2] && finalReels[0] === 'catfish';
+
+      setTimeout(() => {
+        for (let i = 0; i < 3; i++) {
+          animateReelToSymbol(reelEls[i], finalReels[i], i * REEL_STAGGER_MS);
+        }
+      }, 100);
+
+      const totalDuration = 2 * REEL_STAGGER_MS + SPIN_DURATION_MS + 100;
+      setTimeout(() => {
+        spinning = false;
+        stopSound('spin');
+
+        for (let i = 0; i < 3; i++) {
+          renderReel(reelEls[i], finalReels[i]);
+        }
+
+        if (payout > 0) {
+          chips += payout;
+          saveChips();
+
+          if (isJackpot) {
+            resultEl.textContent = `JACKPOT! $${payout}!`;
+            resultEl.classList.add('slots-result-win', 'jackpot');
+            playSound('jackpot');
+          } else {
+            resultEl.textContent = `You won $${payout}!`;
+            resultEl.classList.add('slots-result-win');
+            resultEl.classList.remove('jackpot');
+            playSound('winner');
+          }
+        } else {
+          resultEl.textContent = 'No win';
+          resultEl.classList.remove('slots-result-win', 'jackpot');
+          playSound('lose');
+        }
+
+        updateUI();
+      }, totalDuration);
+    }
+
+    function initDenomButtons() {
+      const container = el('denom-buttons');
+      DENOMINATIONS.forEach((d) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'slots-denom-btn' + (d === currentBet ? ' active' : '');
+        btn.textContent = '$' + d;
+        btn.dataset.bet = String(d);
+        btn.addEventListener('click', () => {
+          if (spinning) return;
+          currentBet = d;
+          updateUI();
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function initReels() {
+      for (let i = 0; i < 3; i++) {
+        const reelEl = el('reel-' + i);
+        buildReelStrip(reelEl);
+        const randomSym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)].id;
+        renderReel(reelEl, randomSym);
+      }
+    }
+
+    function init() {
+      loadSounds();
+      initDenomButtons();
+      initReels();
+      updateUI();
+
+      el('spin-btn').addEventListener('click', spin);
+
+      el('info-btn').addEventListener('click', () => {
+        el('slots-payout-overlay').classList.remove('hidden');
+      });
+
+      el('payout-close').addEventListener('click', () => {
+        el('slots-payout-overlay').classList.add('hidden');
+      });
+
+      el('slots-payout-overlay').addEventListener('click', (e) => {
+        if (e.target === el('slots-payout-overlay')) {
+          el('slots-payout-overlay').classList.add('hidden');
+        }
+      });
+
+      el('rebuy-btn').addEventListener('click', () => {
+        chips = STARTING_CHIPS;
+        saveChips();
+        updateUI();
+      });
+
+      el('sound-toggle').addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        el('sound-toggle').innerHTML = soundEnabled ? '&#x1F50A;' : '&#x1F507;';
+        if (soundEnabled) {
+          startAmbience();
+        } else {
+          stopSound('ambience');
+        }
+      });
+
+      document.addEventListener('click', function firstClick() {
+        startAmbience();
+        document.removeEventListener('click', firstClick);
+      }, { once: true });
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  })();
+  </script>
+</body>
+</html>
