@@ -3,397 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Swamp Slots</title>
-  <meta name="description" content="Play Swamp Slots — a free bayou-themed browser slot machine with pixel art, sound, and rewarded rebuys.">
-  <meta name="theme-color" content="#1a2820">
+  <title>Swamp Slots — Free Bayou Sweepstakes Slots</title>
+  <meta name="description" content="Play Swamp Slots — a cartoony bayou sweepstakes slot with Gold Coins and Sweeps Coins. Penny-to-dollar bets, jackpots, and free play.">
+  <meta name="theme-color" content="#245233">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="swamp_background.webp" type="image/webp">
+  <link rel="stylesheet" href="css/game.css">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7503474617543610"
      crossorigin="anonymous"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { font-size: 24px; }
-
-    body {
-      font-family: 'Press Start 2P', monospace;
-      background: #0d1117;
-      color: #c9d1d9;
-      overflow: hidden;
-      height: 100vh;
-      width: 100vw;
-    }
-
-    .hidden { display: none !important; }
-
-    /* ── Swamp palette ── */
-    :root {
-      --swamp-muted: #8FB56F;
-      --swamp-text: #719A4B;
-      --swamp-highlight: #B4E8C2;
-      --swamp-bright: #8EC1CA;
-      --swamp-border: #2E4B3D;
-      --swamp-border-light: #3D6147;
-      --swamp-win: #5D803F;
-    }
-
-    /* ── Full-screen slots ── */
-    #slots-screen {
-      position: fixed;
-      inset: 0;
-      background: #1a2820 url('swamp_background.webp') center / cover no-repeat;
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* ── Top bar ── */
-    .top-bar {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.4rem 0.75rem;
-      background: rgba(30, 45, 40, 0.9);
-      border-bottom: 0.15rem solid var(--swamp-border);
-      flex-shrink: 0;
-    }
-
-    .top-bar-title {
-      font-size: 0.7rem;
-      color: var(--swamp-highlight);
-      letter-spacing: 0.1rem;
-      text-transform: uppercase;
-    }
-
-    .top-bar-spacer { flex: 1; }
-
-    .top-bar-chips {
-      font-size: 0.65rem;
-      color: var(--swamp-highlight);
-    }
-
-    .btn-rebuy {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 0.5rem;
-      padding: 0.35rem 0.6rem;
-      background: rgba(46, 75, 61, 0.7);
-      border: 0.1rem solid var(--swamp-border-light);
-      color: var(--swamp-muted);
-      cursor: pointer;
-      border-radius: 0;
-    }
-    .btn-rebuy:hover:not(:disabled) {
-      color: var(--swamp-highlight);
-      border-color: var(--swamp-highlight);
-      background: rgba(46, 75, 61, 0.95);
-    }
-    .btn-rebuy:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-    .btn-rebuy .ad-icon {
-      font-style: normal;
-      margin-right: 0.2rem;
-    }
-
-    .btn-sound-toggle {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 0.6rem;
-      padding: 0.35rem 0.5rem;
-      background: rgba(0,0,0,0.4);
-      border: 0.1rem solid var(--swamp-border);
-      color: var(--swamp-muted);
-      cursor: pointer;
-      border-radius: 0;
-      line-height: 1;
-    }
-    .btn-sound-toggle:hover {
-      color: var(--swamp-highlight);
-      border-color: var(--swamp-highlight);
-    }
-
-    /* ── Main area ── */
-    .slots-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      min-height: 0;
-    }
-
-    /* ── Machine ── */
-    .slots-machine {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.5rem;
-      padding: 2.5rem;
-      width: 28rem;
-      max-width: 95vw;
-      background: rgba(45, 61, 55, 0.95);
-      border: 0.25rem solid var(--swamp-border-light);
-      box-shadow: inset 0 0 1rem rgba(0,0,0,0.5), 0 0.5rem 1.5rem rgba(0,0,0,0.5);
-      image-rendering: pixelated;
-    }
-
-    .slots-machine-label {
-      font-size: 1rem;
-      color: var(--swamp-highlight);
-      text-transform: uppercase;
-      letter-spacing: 0.15rem;
-    }
-
-    /* ── Reels ── */
-    .slots-reels {
-      display: flex;
-      gap: 0.5rem;
-      padding: 1rem;
-      background: #1a2420;
-      border: 0.2rem solid var(--swamp-border);
-    }
-
-    .slots-reel {
-      width: 6rem;
-      height: 6rem;
-      background: #0d0a08;
-      overflow: hidden;
-      position: relative;
-      image-rendering: pixelated;
-    }
-
-    .slots-reel-strip {
-      display: flex;
-      flex-direction: column;
-      will-change: transform;
-      image-rendering: pixelated;
-    }
-
-    .slots-symbol {
-      width: 6rem;
-      height: 6rem;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .slots-symbol-img {
-      width: 4.4rem;
-      height: 4.4rem;
-      object-fit: contain;
-      image-rendering: pixelated;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: crisp-edges;
-    }
-
-    .slots-payline {
-      width: 100%;
-      height: 0.3rem;
-      background: var(--swamp-bright);
-      border-radius: 0.1rem;
-    }
-
-    /* ── Result text ── */
-    .slots-result {
-      font-size: 1.2rem;
-      color: var(--swamp-muted);
-      min-height: 2.4rem;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .slots-result.slots-result-win {
-      color: var(--swamp-highlight);
-    }
-
-    /* ── Controls ── */
-    .slots-machine-controls {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-      align-items: center;
-    }
-
-    .slots-denom-buttons {
-      display: flex;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .slots-denom-btn {
-      padding: 0.45rem 0.8rem;
-      font-size: 0.7rem;
-      font-family: 'Press Start 2P', monospace;
-      background: rgba(0,0,0,0.5);
-      border: 0.1rem solid var(--swamp-border);
-      color: var(--swamp-muted);
-      cursor: pointer;
-      border-radius: 0;
-      transition: none;
-    }
-
-    .slots-denom-btn:hover {
-      color: var(--swamp-highlight);
-      background: rgba(0,0,0,0.7);
-    }
-
-    .slots-denom-btn.active {
-      color: var(--swamp-highlight);
-      border-color: var(--swamp-bright);
-      background: rgba(46, 75, 61, 0.9);
-    }
-
-    .slots-spin-row {
-      display: flex;
-      gap: 0.6rem;
-      align-items: center;
-    }
-
-    .slots-spin-btn {
-      font-family: 'Press Start 2P', monospace;
-      padding: 0.9rem 2.2rem;
-      font-size: 1rem;
-      color: var(--swamp-muted);
-      border: 0.15rem solid var(--swamp-border);
-      background: rgba(0,0,0,0.5);
-      cursor: pointer;
-      border-radius: 0;
-      transition: none;
-    }
-
-    .slots-spin-btn:hover:not(:disabled) {
-      background: rgba(46, 75, 61, 0.5);
-      border-color: var(--swamp-highlight);
-      color: var(--swamp-highlight);
-    }
-
-    .slots-spin-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    .slots-info-btn {
-      width: 2.5rem;
-      height: 2.5rem;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      color: var(--swamp-muted);
-      background: rgba(0,0,0,0.5);
-      border: 0.1rem solid var(--swamp-border);
-      border-radius: 0.2rem;
-      cursor: pointer;
-      font-family: 'Press Start 2P', monospace;
-    }
-
-    .slots-info-btn:hover {
-      color: var(--swamp-highlight);
-      background: rgba(0,0,0,0.7);
-    }
-
-    /* ── Payout overlay ── */
-    .slots-payout-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-
-    .slots-payout-overlay.hidden { display: none; }
-
-    .slots-payout-panel {
-      background: rgba(45, 61, 55, 0.98);
-      border: 0.25rem solid var(--swamp-border-light);
-      padding: 1.5rem;
-      max-width: 20rem;
-    }
-
-    .slots-payout-panel h3 {
-      margin: 0 0 0.75rem;
-      font-size: 0.6rem;
-      color: var(--swamp-highlight);
-    }
-
-    .slots-payout-list {
-      list-style: none;
-      margin: 0 0 1rem;
-      padding: 0;
-      font-size: 0.5rem;
-      color: var(--swamp-muted);
-    }
-
-    .slots-payout-list li {
-      padding: 0.25rem 0;
-      border-bottom: 0.05rem solid rgba(46, 75, 61, 0.5);
-    }
-
-    .slots-payout-list li:last-child { border-bottom: none; }
-
-    .slots-payout-close {
-      width: 100%;
-      padding: 0.5rem;
-      font-size: 0.5rem;
-      font-family: 'Press Start 2P', monospace;
-      background: rgba(0,0,0,0.5);
-      border: 0.1rem solid var(--swamp-border);
-      color: var(--swamp-muted);
-      cursor: pointer;
-      border-radius: 0;
-    }
-
-    .slots-payout-close:hover {
-      color: var(--swamp-highlight);
-      border-color: var(--swamp-highlight);
-    }
-
-    /* ── Jackpot flash ── */
-    @keyframes jackpot-flash {
-      0%, 100% { color: var(--swamp-highlight); text-shadow: 0 0 0.5rem rgba(180,232,194,0.6); }
-      50% { color: #FFD700; text-shadow: 0 0 1rem rgba(255,215,0,0.8); }
-    }
-
-    .slots-result.jackpot {
-      animation: jackpot-flash 0.4s ease-in-out 6;
-    }
-
-    @media (max-width: 640px) {
-      html { font-size: 16px; }
-      .slots-machine { padding: 1.25rem; gap: 1rem; }
-      .slots-machine-label { font-size: 0.75rem; }
-      .slots-result { font-size: 0.85rem; min-height: 1.8rem; }
-      .slots-spin-btn { padding: 0.7rem 1.4rem; font-size: 0.8rem; }
-      .top-bar-title { font-size: 0.55rem; }
-      .top-bar-chips { font-size: 0.55rem; }
-    }
-  </style>
 </head>
 <body>
 
   <div id="slots-screen">
-    <div class="top-bar">
-      <span class="top-bar-title">Swamp Slots</span>
-      <div class="top-bar-spacer"></div>
-      <span class="top-bar-chips" id="slots-chips-display">$100</span>
-      <button type="button" class="btn-rebuy" id="rebuy-btn" disabled><span class="ad-icon">&#x25B6;</span>Rebuy $100</button>
-      <button type="button" class="btn-sound-toggle" id="sound-toggle" title="Toggle sound">&#x1F50A;</button>
-    </div>
+    <header class="top-bar">
+      <div class="brand">
+        <div class="brand-title">Swamp Slots</div>
+        <div class="brand-sub">Bayou sweepstakes fun</div>
+      </div>
 
-    <div class="slots-container">
-      <div class="slots-machine">
+      <div class="wallet-stack" role="group" aria-label="Wallets">
+        <button type="button" class="wallet-chip active-gc" id="wallet-gc" title="Play with Gold Coins">
+          <span class="wallet-icon gc" aria-hidden="true">G</span>
+          <span class="wallet-meta">
+            <span class="wallet-label">Gold Coins</span>
+            <span class="wallet-amount" id="gc-amount">10,000</span>
+          </span>
+        </button>
+        <button type="button" class="wallet-chip" id="wallet-sc" title="Play with Sweeps Coins">
+          <span class="wallet-icon sc" aria-hidden="true">S</span>
+          <span class="wallet-meta">
+            <span class="wallet-label">Sweeps Coins</span>
+            <span class="wallet-amount" id="sc-amount">5</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="top-actions">
+        <button type="button" class="btn btn-store" id="store-btn">Buy Coins</button>
+        <button type="button" class="btn btn-free" id="free-sc-btn" disabled>
+          ▶ <span class="btn-label-long">Free </span>+SC
+        </button>
+        <button type="button" class="btn btn-icon" id="sound-toggle" aria-label="Mute sound">🔊</button>
+      </div>
+    </header>
+
+    <main class="slots-container">
+      <div class="slots-machine" id="slots-machine">
+        <div class="coin-burst" id="coin-burst" aria-hidden="true"></div>
         <div class="slots-machine-label">Swamp Slots</div>
+        <div class="wallet-hint" id="wallet-hint">Playing with Gold Coins</div>
 
         <div class="slots-reels" id="slots-reels">
           <div class="slots-reel" id="reel-0"></div>
@@ -401,430 +61,51 @@
           <div class="slots-reel" id="reel-2"></div>
         </div>
 
-        <div class="slots-payline"></div>
-
-        <div class="slots-result" id="slots-result"></div>
+        <div class="slots-payline" aria-hidden="true"></div>
+        <div class="slots-result" id="slots-result">Good luck in the bayou!</div>
 
         <div class="slots-machine-controls">
-          <div class="slots-denom-buttons" id="denom-buttons"></div>
+          <div class="slots-denom-buttons" id="denom-buttons" aria-label="Bet amount"></div>
           <div class="slots-spin-row">
-            <button type="button" class="slots-spin-btn" id="spin-btn">Spin $5</button>
-            <button type="button" class="slots-info-btn" id="info-btn" title="Payout table">&#8505;</button>
+            <button type="button" class="slots-spin-btn" id="spin-btn">Spin 5 GC</button>
+            <button type="button" class="slots-info-btn" id="info-btn" title="Payout table">ℹ</button>
           </div>
         </div>
       </div>
+    </main>
+
+    <footer class="site-footer">
+      No purchase necessary. Gold Coins have no cash value. Sweeps Coins are promotional entries for entertainment.
+      Purchases are demo-only (no charge). Void where prohibited.
+      <a href="#rules" id="rules-link">Official Rules</a> (coming soon).
+    </footer>
+  </div>
+
+  <div id="store-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="store-title">
+    <div class="modal-panel">
+      <h3 id="store-title">Coin Store</h3>
+      <p class="modal-note">Demo packs only — tap a pack to add coins instantly. No real payment is processed.</p>
+      <div class="pack-list" id="pack-list"></div>
+      <button type="button" class="btn btn-close" id="store-close">Close</button>
     </div>
   </div>
 
-  <div id="slots-payout-overlay" class="slots-payout-overlay hidden">
-    <div class="slots-payout-panel">
-      <h3>Payout Table (multipliers)</h3>
-      <ul class="slots-payout-list">
-        <li><strong>3 Catfish</strong> &mdash; x50 Jackpot!</li>
-        <li><strong>3 Crayfish</strong> &mdash; x10</li>
-        <li><strong>3 Alligator</strong> &mdash; x8</li>
-        <li><strong>3 Worm</strong> &mdash; x4</li>
-        <li><strong>3 Hook</strong> &mdash; x3</li>
-        <li><strong>2 Worms</strong> &mdash; x1 (bet back)</li>
+  <div id="payout-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="payout-title">
+    <div class="modal-panel">
+      <h3 id="payout-title">Payout Table</h3>
+      <p class="modal-note">Multipliers apply to your bet in the active wallet.</p>
+      <ul class="payout-list">
+        <li><strong>3 Catfish</strong><span>x50 Jackpot</span></li>
+        <li><strong>3 Crayfish</strong><span>x10</span></li>
+        <li><strong>3 Alligator</strong><span>x8</span></li>
+        <li><strong>3 Worm</strong><span>x4</span></li>
+        <li><strong>3 Hook</strong><span>x3</span></li>
+        <li><strong>2 Worms</strong><span>x1 (bet back)</span></li>
       </ul>
-      <button type="button" class="slots-payout-close" id="payout-close">Close</button>
+      <button type="button" class="btn btn-close" id="payout-close">Close</button>
     </div>
   </div>
 
-  <script>
-  (function () {
-    'use strict';
-
-    const DENOMINATIONS = [5, 10, 20, 100];
-    const DEFAULT_BET = 5;
-    const SYMBOL_HEIGHT = 6;
-    const SPIN_CYCLES = 4;
-    const SPIN_DURATION_MS = 2800;
-    const REEL_STAGGER_MS = 180;
-    const CYCLE_OFFSET = 2;
-    const STARTING_CHIPS = 100;
-    const REBUY_AMOUNT = 100;
-
-    // ── AdSense Ad Placement API (rewarded ads) ──
-    window.adsbygoogle = window.adsbygoogle || [];
-    let adBreak = function (o) { adsbygoogle.push(o); };
-    let adConfig = function (o) { adsbygoogle.push(o); };
-    let adsReady = false;
-    let adRequesting = false;
-
-    function initAds() {
-      adConfig({
-        preloadAdBreaks: 'on',
-        onReady: function () {
-          adsReady = true;
-          updateUI();
-        },
-      });
-    }
-
-    function showRewardedAd() {
-      if (adRequesting || spinning) return;
-      adRequesting = true;
-      updateUI();
-
-      adBreak({
-        type: 'reward',
-        name: 'rebuy-chips',
-        beforeReward: function (showAdFn) {
-          showAdFn();
-        },
-        adViewed: function () {
-          chips += REBUY_AMOUNT;
-          saveChips();
-        },
-        adDismissed: function () {},
-        adBreakDone: function () {
-          adRequesting = false;
-          updateUI();
-        },
-      });
-    }
-
-    const SYMBOLS = [
-      { id: 'crayfish', img: 'slot-assets/crayfish.png' },
-      { id: 'alligator', img: 'slot-assets/alligator.png' },
-      { id: 'catfish', img: 'slot-assets/catfish.png' },
-      { id: 'worm', img: 'slot-assets/worm.png' },
-      { id: 'hook', img: 'slot-assets/hook.png' },
-    ];
-
-    const SYMBOL_MAP = Object.fromEntries(SYMBOLS.map((s) => [s.id, s]));
-
-    const MULTIPLIERS = { catfish: 50, crayfish: 10, alligator: 8, worm: 4, hook: 3 };
-
-    let chips = parseInt(localStorage.getItem('swampslots_chips'), 10);
-    if (!Number.isFinite(chips) || chips <= 0) chips = STARTING_CHIPS;
-
-    let currentBet = DEFAULT_BET;
-    let spinning = false;
-    let soundEnabled = true;
-    let soundsReady = false;
-
-    const SOUND_FILES = {
-      ambience: 'sounds/SWAMP_AMBIENCE.mp3',
-      spin: 'sounds/SLOT_SPIN_SOUND.mp3',
-      jackpot: 'sounds/swamp_jackpot.mp3',
-      lose: 'sounds/slots_lose.mp3',
-      winner: 'sounds/winner.mp3',
-    };
-    const sounds = {};
-
-    function ensureSounds() {
-      if (soundsReady) return;
-      soundsReady = true;
-      for (const [key, src] of Object.entries(SOUND_FILES)) {
-        const audio = new Audio();
-        audio.preload = 'auto';
-        audio.src = src;
-        if (key === 'ambience') {
-          audio.loop = true;
-          audio.volume = 0.25;
-        } else {
-          audio.volume = 0.6;
-        }
-        sounds[key] = audio;
-      }
-    }
-
-    function preloadSymbols() {
-      SYMBOLS.forEach((sym) => {
-        const img = new Image();
-        img.src = sym.img;
-      });
-    }
-
-    function playSound(name) {
-      if (!soundEnabled) return;
-      ensureSounds();
-      const s = sounds[name];
-      if (!s) return;
-      if (name !== 'ambience') {
-        s.currentTime = 0;
-      }
-      s.play().catch(() => {});
-    }
-
-    function stopSound(name) {
-      if (!sounds[name]) return;
-      sounds[name].pause();
-      if (name !== 'ambience') sounds[name].currentTime = 0;
-    }
-
-    function startAmbience() {
-      if (!soundEnabled) return;
-      ensureSounds();
-      if (sounds.ambience) {
-        sounds.ambience.play().catch(() => {});
-      }
-    }
-
-    function el(id) { return document.getElementById(id); }
-
-    function saveChips() {
-      localStorage.setItem('swampslots_chips', String(chips));
-    }
-
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
-
-    function createSymbolEl(sym) {
-      const span = document.createElement('span');
-      span.className = 'slots-symbol';
-      const img = document.createElement('img');
-      img.src = sym.img;
-      img.alt = sym.id;
-      img.className = 'slots-symbol-img';
-      img.decoding = 'async';
-      img.draggable = false;
-      span.appendChild(img);
-      return span;
-    }
-
-    function buildReelStrip(reelEl, symbolOrder) {
-      reelEl.innerHTML = '';
-      const order = symbolOrder || shuffle(SYMBOLS.map((s) => s.id));
-      reelEl.dataset.symbolOrder = JSON.stringify(order);
-      const strip = document.createElement('div');
-      strip.className = 'slots-reel-strip';
-      for (let cycle = 0; cycle < SPIN_CYCLES + 2; cycle++) {
-        for (let i = 0; i < order.length; i++) {
-          strip.appendChild(createSymbolEl(SYMBOL_MAP[order[i]] || SYMBOLS[i]));
-        }
-      }
-      reelEl.appendChild(strip);
-      return strip;
-    }
-
-    function getSymbolIndexInReel(reelEl, symbolId) {
-      try {
-        const order = JSON.parse(reelEl.dataset.symbolOrder || '[]');
-        return order.indexOf(symbolId);
-      } catch (_) {
-        return SYMBOLS.findIndex((s) => s.id === symbolId);
-      }
-    }
-
-    function animateReelToSymbol(reelEl, symbolId, delayMs) {
-      const strip = reelEl.querySelector('.slots-reel-strip');
-      if (!strip) return;
-      const idx = getSymbolIndexInReel(reelEl, symbolId);
-      const len = SYMBOLS.length;
-      if (idx < 0) return;
-
-      const endOffset = SYMBOL_HEIGHT * (idx + CYCLE_OFFSET * len);
-      const startOffset = SYMBOL_HEIGHT * (idx + (CYCLE_OFFSET + SPIN_CYCLES) * len);
-
-      strip.style.transition = 'none';
-      strip.style.transform = `translateY(-${startOffset}rem)`;
-      strip.offsetHeight;
-
-      setTimeout(() => {
-        strip.style.transition = `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.1, 0.8, 0.2, 1)`;
-        strip.style.transform = `translateY(-${endOffset}rem)`;
-      }, delayMs);
-    }
-
-    function renderReel(reelEl, symbolId) {
-      let strip = reelEl.querySelector('.slots-reel-strip');
-      if (!strip) strip = buildReelStrip(reelEl);
-      strip.style.transition = 'none';
-      if (symbolId) {
-        const idx = getSymbolIndexInReel(reelEl, symbolId);
-        const len = SYMBOLS.length;
-        if (idx >= 0) {
-          const offset = SYMBOL_HEIGHT * (idx + CYCLE_OFFSET * len);
-          strip.style.transform = `translateY(-${offset}rem)`;
-        }
-      }
-    }
-
-    function updateUI() {
-      el('slots-chips-display').textContent = '$' + chips;
-      const spinBtn = el('spin-btn');
-      spinBtn.disabled = spinning || chips < currentBet;
-      spinBtn.textContent = `Spin $${currentBet}`;
-
-      const rebuyBtn = el('rebuy-btn');
-      rebuyBtn.disabled = !adsReady || adRequesting || spinning;
-
-      document.querySelectorAll('.slots-denom-btn').forEach((btn) => {
-        const val = parseInt(btn.dataset.bet, 10);
-        btn.classList.toggle('active', val === currentBet);
-      });
-    }
-
-    function resolveReels() {
-      const symbolIds = SYMBOLS.map((s) => s.id);
-      return [
-        symbolIds[Math.floor(Math.random() * symbolIds.length)],
-        symbolIds[Math.floor(Math.random() * symbolIds.length)],
-        symbolIds[Math.floor(Math.random() * symbolIds.length)],
-      ];
-    }
-
-    function calculatePayout(reels, bet) {
-      if (reels[0] === reels[1] && reels[1] === reels[2]) {
-        return bet * (MULTIPLIERS[reels[0]] || 0);
-      }
-      const wormCount = reels.filter((r) => r === 'worm').length;
-      if (wormCount >= 2) return bet;
-      return 0;
-    }
-
-    function spin() {
-      if (spinning || chips < currentBet) return;
-      spinning = true;
-
-      chips -= currentBet;
-      saveChips();
-      updateUI();
-
-      playSound('spin');
-
-      const reelEls = [el('reel-0'), el('reel-1'), el('reel-2')];
-      reelEls.forEach((reelEl) => {
-        buildReelStrip(reelEl);
-        const strip = reelEl.querySelector('.slots-reel-strip');
-        if (strip) {
-          strip.style.transition = 'transform 80ms linear';
-          strip.style.transform = `translateY(-${SYMBOL_HEIGHT * SYMBOLS.length * 3}rem)`;
-        }
-      });
-
-      const resultEl = el('slots-result');
-      resultEl.textContent = 'Spinning...';
-      resultEl.classList.remove('slots-result-win', 'jackpot');
-
-      const finalReels = resolveReels();
-      const payout = calculatePayout(finalReels, currentBet);
-      const isJackpot = finalReels[0] === finalReels[1] && finalReels[1] === finalReels[2] && finalReels[0] === 'catfish';
-
-      setTimeout(() => {
-        for (let i = 0; i < 3; i++) {
-          animateReelToSymbol(reelEls[i], finalReels[i], i * REEL_STAGGER_MS);
-        }
-      }, 100);
-
-      const totalDuration = 2 * REEL_STAGGER_MS + SPIN_DURATION_MS + 100;
-      setTimeout(() => {
-        spinning = false;
-        stopSound('spin');
-
-        for (let i = 0; i < 3; i++) {
-          renderReel(reelEls[i], finalReels[i]);
-        }
-
-        if (payout > 0) {
-          chips += payout;
-          saveChips();
-
-          if (isJackpot) {
-            resultEl.textContent = `JACKPOT! $${payout}!`;
-            resultEl.classList.add('slots-result-win', 'jackpot');
-            playSound('jackpot');
-          } else {
-            resultEl.textContent = `You won $${payout}!`;
-            resultEl.classList.add('slots-result-win');
-            resultEl.classList.remove('jackpot');
-            playSound('winner');
-          }
-        } else {
-          resultEl.textContent = 'No win';
-          resultEl.classList.remove('slots-result-win', 'jackpot');
-          playSound('lose');
-        }
-
-        updateUI();
-      }, totalDuration);
-    }
-
-    function initDenomButtons() {
-      const container = el('denom-buttons');
-      DENOMINATIONS.forEach((d) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'slots-denom-btn' + (d === currentBet ? ' active' : '');
-        btn.textContent = '$' + d;
-        btn.dataset.bet = String(d);
-        btn.addEventListener('click', () => {
-          if (spinning) return;
-          currentBet = d;
-          updateUI();
-        });
-        container.appendChild(btn);
-      });
-    }
-
-    function initReels() {
-      for (let i = 0; i < 3; i++) {
-        const reelEl = el('reel-' + i);
-        buildReelStrip(reelEl);
-        const randomSym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)].id;
-        renderReel(reelEl, randomSym);
-      }
-    }
-
-    function init() {
-      preloadSymbols();
-      initDenomButtons();
-      initReels();
-      updateUI();
-
-      el('spin-btn').addEventListener('click', spin);
-
-      el('info-btn').addEventListener('click', () => {
-        el('slots-payout-overlay').classList.remove('hidden');
-      });
-
-      el('payout-close').addEventListener('click', () => {
-        el('slots-payout-overlay').classList.add('hidden');
-      });
-
-      el('slots-payout-overlay').addEventListener('click', (e) => {
-        if (e.target === el('slots-payout-overlay')) {
-          el('slots-payout-overlay').classList.add('hidden');
-        }
-      });
-
-      el('rebuy-btn').addEventListener('click', () => {
-        if (!adsReady || adRequesting) return;
-        showRewardedAd();
-      });
-
-      el('sound-toggle').addEventListener('click', () => {
-        soundEnabled = !soundEnabled;
-        el('sound-toggle').innerHTML = soundEnabled ? '&#x1F50A;' : '&#x1F507;';
-        if (soundEnabled) {
-          startAmbience();
-        } else {
-          stopSound('ambience');
-          Object.keys(sounds).forEach((name) => {
-            if (name !== 'ambience') stopSound(name);
-          });
-        }
-      });
-
-      document.addEventListener('click', function firstClick() {
-        startAmbience();
-        document.removeEventListener('click', firstClick);
-      }, { once: true });
-
-      initAds();
-    }
-
-    document.addEventListener('DOMContentLoaded', init);
-  })();
-  </script>
+  <script src="js/game.js"></script>
 </body>
 </html>

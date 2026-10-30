@@ -1,13 +1,15 @@
 # Swamp Slots
 
-Browser-based slot machine with a bayou theme, pixel-art symbols, and sound effects. Pure client-side HTML, CSS, and JavaScript — no build step required.
+Cartoony bayou sweepstakes-style slot machine with dual wallets (Gold Coins + Sweeps Coins). Pure client-side HTML/CSS/JS — no build step.
 
 ## Gameplay
 
-- Start with $100 in chips.
-- Choose a bet denomination ($5 / $10 / $20 / $100) and hit **Spin**.
-- Three reels land on swamp-themed symbols; matching combinations pay out according to the payout table.
-- Watch a rewarded ad to rebuy $100 in chips when you run out (AdSense Ad Placement API).
+- Start with **10,000 Gold Coins** and **5 Sweeps Coins**.
+- Toggle which wallet you play with in the top bar.
+- Bet `1 / 5 / 10 / 25 / 100` and hit **Spin**.
+- Matching combinations pay multipliers into the active wallet.
+- **Buy Coins** opens a demo store (no real charges) that grants Gold + bonus Sweeps.
+- Watch a rewarded ad for free Sweeps Coins when available.
 
 ## Payout Table
 
@@ -22,17 +24,15 @@ Browser-based slot machine with a bayou theme, pixel-art symbols, and sound effe
 
 ## Run
 
-Open `index.html` in a browser. Chip balance is saved to `localStorage`.
+Open `index.html` in a browser, or deploy the folder as a static site. Balances save to `localStorage`.
 
 ## Files
 
 | Path | Purpose |
 |------|--------|
-| `index.html` | Full game (markup, styles, and logic in one file) |
-| `swamp_background.webp` | Compressed full-bleed swamp background |
-| `slot-assets/` | Pixel-art symbol images |
-| `sounds/` | Ambient, spin, win, lose, and jackpot audio (MP3) |
-
-## Performance notes
-
-Audio ships as MP3 (not WAV). Sounds load on first interaction. Spin animation is ~2.8s.
+| `index.html` | Page shell |
+| `css/game.css` | Cartoony theme, layout, motions |
+| `js/game.js` | Wallets, store stub, spin logic, ads |
+| `slot-assets/` | Symbol art |
+| `swamp_background.webp` | Full-bleed background |
+| `sounds/` | Ambient, spin, win, lose, jackpot audio |
