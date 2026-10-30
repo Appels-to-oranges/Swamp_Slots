@@ -4,8 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Swamp Slots</title>
+  <meta name="description" content="Play Swamp Slots — a free bayou-themed browser slot machine with pixel art, sound, and rewarded rebuys.">
+  <meta name="theme-color" content="#1a2820">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="swamp_background.webp" type="image/webp">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7503474617543610"
      crossorigin="anonymous"></script>
   <style>
@@ -39,7 +43,7 @@
     #slots-screen {
       position: fixed;
       inset: 0;
-      background: #1a2820 url('swamp_background.png') center / cover no-repeat;
+      background: #1a2820 url('swamp_background.webp') center / cover no-repeat;
       z-index: 50;
       display: flex;
       flex-direction: column;
@@ -364,6 +368,16 @@
     .slots-result.jackpot {
       animation: jackpot-flash 0.4s ease-in-out 6;
     }
+
+    @media (max-width: 640px) {
+      html { font-size: 16px; }
+      .slots-machine { padding: 1.25rem; gap: 1rem; }
+      .slots-machine-label { font-size: 0.75rem; }
+      .slots-result { font-size: 0.85rem; min-height: 1.8rem; }
+      .slots-spin-btn { padding: 0.7rem 1.4rem; font-size: 0.8rem; }
+      .top-bar-title { font-size: 0.55rem; }
+      .top-bar-chips { font-size: 0.55rem; }
+    }
   </style>
 </head>
 <body>
@@ -424,9 +438,9 @@
     const DENOMINATIONS = [5, 10, 20, 100];
     const DEFAULT_BET = 5;
     const SYMBOL_HEIGHT = 6;
-    const SPIN_CYCLES = 8;
-    const SPIN_DURATION_MS = 10000;
-    const REEL_STAGGER_MS = 200;
+    const SPIN_CYCLES = 4;
+    const SPIN_DURATION_MS = 2800;
+    const REEL_STAGGER_MS = 180;
     const CYCLE_OFFSET = 2;
     const STARTING_CHIPS = 100;
     const REBUY_AMOUNT = 100;
@@ -472,11 +486,11 @@
     }
 
     const SYMBOLS = [
-      { id: 'crayfish', img: 'slot-assets/blue-crayfish.png' },
-      { id: 'alligator', img: 'slot-assets/Copy of american-alligator.png' },
-      { id: 'catfish', img: 'slot-assets/Copy of catfish-image.png' },
-      { id: 'worm', img: 'slot-assets/Copy of worm-bait.png' },
-      { id: 'hook', img: 'slot-assets/fishing-hook-1.png' },
+      { id: 'crayfish', img: 'slot-assets/crayfish.png' },
+      { id: 'alligator', img: 'slot-assets/alligator.png' },
+      { id: 'catfish', img: 'slot-assets/catfish.png' },
+      { id: 'worm', img: 'slot-assets/worm.png' },
+      { id: 'hook', img: 'slot-assets/hook.png' },
     ];
 
     const SYMBOL_MAP = Object.fromEntries(SYMBOLS.map((s) => [s.id, s]));
@@ -489,19 +503,24 @@
     let currentBet = DEFAULT_BET;
     let spinning = false;
     let soundEnabled = true;
+    let soundsReady = false;
 
+    const SOUND_FILES = {
+      ambience: 'sounds/SWAMP_AMBIENCE.mp3',
+      spin: 'sounds/SLOT_SPIN_SOUND.mp3',
+      jackpot: 'sounds/swamp_jackpot.mp3',
+      lose: 'sounds/slots_lose.mp3',
+      winner: 'sounds/winner.mp3',
+    };
     const sounds = {};
 
-    function loadSounds() {
-      const files = {
-        ambience: 'sounds/SWAMP_AMBIENCE.wav',
-        spin: 'sounds/SLOT_SPIN_SOUND.wav',
-        jackpot: 'sounds/swamp_jackpot.wav',
-        lose: 'sounds/slots_lose.wav',
-        winner: 'sounds/winner.wav',
-      };
-      for (const [key, src] of Object.entries(files)) {
-        const audio = new Audio(src);
+    function ensureSounds() {
+      if (soundsReady) return;
+      soundsReady = true;
+      for (const [key, src] of Object.entries(SOUND_FILES)) {
+        const audio = new Audio();
+        audio.preload = 'auto';
+        audio.src = src;
         if (key === 'ambience') {
           audio.loop = true;
           audio.volume = 0.25;
@@ -512,9 +531,18 @@
       }
     }
 
+    function preloadSymbols() {
+      SYMBOLS.forEach((sym) => {
+        const img = new Image();
+        img.src = sym.img;
+      });
+    }
+
     function playSound(name) {
-      if (!soundEnabled || !sounds[name]) return;
+      if (!soundEnabled) return;
+      ensureSounds();
       const s = sounds[name];
+      if (!s) return;
       if (name !== 'ambience') {
         s.currentTime = 0;
       }
@@ -528,7 +556,9 @@
     }
 
     function startAmbience() {
-      if (soundEnabled && sounds.ambience) {
+      if (!soundEnabled) return;
+      ensureSounds();
+      if (sounds.ambience) {
         sounds.ambience.play().catch(() => {});
       }
     }
@@ -555,6 +585,8 @@
       img.src = sym.img;
       img.alt = sym.id;
       img.className = 'slots-symbol-img';
+      img.decoding = 'async';
+      img.draggable = false;
       span.appendChild(img);
       return span;
     }
@@ -591,7 +623,7 @@
       if (idx < 0) return;
 
       const endOffset = SYMBOL_HEIGHT * (idx + CYCLE_OFFSET * len);
-      const startOffset = SYMBOL_HEIGHT * (idx + (CYCLE_OFFSET + 6) * len);
+      const startOffset = SYMBOL_HEIGHT * (idx + (CYCLE_OFFSET + SPIN_CYCLES) * len);
 
       strip.style.transition = 'none';
       strip.style.transform = `translateY(-${startOffset}rem)`;
@@ -744,7 +776,7 @@
     }
 
     function init() {
-      loadSounds();
+      preloadSymbols();
       initDenomButtons();
       initReels();
       updateUI();
@@ -777,6 +809,9 @@
           startAmbience();
         } else {
           stopSound('ambience');
+          Object.keys(sounds).forEach((name) => {
+            if (name !== 'ambience') stopSound(name);
+          });
         }
       });
 

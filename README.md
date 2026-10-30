@@ -29,5 +29,10 @@ Open `index.html` in a browser. Chip balance is saved to `localStorage`.
 | Path | Purpose |
 |------|--------|
 | `index.html` | Full game (markup, styles, and logic in one file) |
+| `swamp_background.webp` | Compressed full-bleed swamp background |
 | `slot-assets/` | Pixel-art symbol images |
-| `sounds/` | Ambient, spin, win, lose, and jackpot audio |
+| `sounds/` | Ambient, spin, win, lose, and jackpot audio (MP3) |
+
+## Performance notes
+
+Audio ships as MP3 (not WAV). Sounds load on first interaction. Spin animation is ~2.8s.
